@@ -77,6 +77,14 @@ public class Shape {
         return name;
     }
 
+    public boolean getMovable() {
+        return movable;
+    }
+
+    public void setMovable(boolean newMovable) {
+        movable = newMovable;
+    }
+
     public void setImage(String newImageText, Context context) {
         myImageText = newImageText;
         if(myImageText != "") {
@@ -92,6 +100,10 @@ public class Shape {
         System.out.println("Couldn't find resource");
         myImage = null;
         myImageText = "";
+    }
+
+    public boolean intersects(Shape that) {
+        return Rect.intersects(boundsRect, that.boundsRect);
     }
 
     public void setBounds(Rect newBounds) {
