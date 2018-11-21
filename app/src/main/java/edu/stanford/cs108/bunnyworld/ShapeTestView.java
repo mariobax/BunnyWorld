@@ -89,6 +89,7 @@ public class ShapeTestView extends View {
 
         //test playing sounds and ondrop trigger
         Script onDropPlay = new Script(new Trigger(Trigger.ON_ENTER), new PlayAction(R.raw.evillaugh, getContext()));
+        //''                                                                      ''("evillaugh",
         shape4.addScript(onDropPlay);
 
         //test more complex use cases
@@ -109,6 +110,14 @@ public class ShapeTestView extends View {
         shape6.addScript(add5);
         shape6.addScript(add7);
         shape6.deleteScript(add6);
+
+        //test toString method
+        System.out.println("Shape 1 toString: " + shape1);
+        System.out.println("Shape 2 toString: " + shape2);
+        System.out.println("Shape 3 toString: " + shape3);
+        System.out.println("Shape 4 toString: " + shape4);
+        System.out.println("Shape 5 toString: " + shape5);
+        System.out.println("Shape 6 toString: " + shape6);
 
         // Set up a default TextPaint object
         greypaint = new Paint();

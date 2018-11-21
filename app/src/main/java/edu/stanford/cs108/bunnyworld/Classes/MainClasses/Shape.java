@@ -213,6 +213,17 @@ public class Shape {
         myScripts.add(toAdd);
     }
 
+    @Override
+    public String toString() {
+        String r = "{[name " + name + "] [bounds " + boundsRect.toString() + "]";
+        if(myText != "") {
+            r += " [text " + myText + "]";
+        } else if(myImageText != "") {
+            r += " [image " + myImageText + "]";
+        }
+        return r + "}";
+    }
+
 
     public void hide() {
         hidden = true;
