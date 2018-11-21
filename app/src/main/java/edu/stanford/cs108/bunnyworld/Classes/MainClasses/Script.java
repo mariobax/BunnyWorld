@@ -1,6 +1,7 @@
 package edu.stanford.cs108.bunnyworld.Classes.MainClasses;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.stanford.cs108.bunnyworld.Classes.AllActions.Action;
 import edu.stanford.cs108.bunnyworld.Classes.AllTriggers.Trigger;
@@ -41,6 +42,7 @@ public class Script  {
      * @param _actions List of Actions constructor
      */
     public Script(Trigger t, ArrayList<Action> _actions) {
+        myTrigger = t;
         actions = _actions;
     }
 
@@ -66,6 +68,17 @@ public class Script  {
                 a.execute();
             }
         }
+    }
+
+    public List<Action> getActions(Trigger t) {
+        if(t.equals(myTrigger)) {
+            return actions;
+        }
+        return null;
+    }
+
+    public Trigger getTrigger() {
+        return myTrigger;
     }
 
     @Override

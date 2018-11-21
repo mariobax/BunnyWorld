@@ -56,6 +56,15 @@ public class Trigger {
     }
 
     @Override
+    public String toString() {
+        if(myTriggerID == ON_CLICK) return "ON_CLICK ";
+        else if(myTriggerID == ON_ENTER) return "ON_ENTER";
+        else {
+            return "ON_DROP(" + myShape.getName() + ") ";
+        }
+    }
+
+    @Override
     public int hashCode() {
         return myTriggerID;
     }

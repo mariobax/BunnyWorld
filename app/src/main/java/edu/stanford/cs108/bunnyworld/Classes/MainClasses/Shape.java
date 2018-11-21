@@ -1,13 +1,24 @@
 package edu.stanford.cs108.bunnyworld.Classes.MainClasses;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import edu.stanford.cs108.bunnyworld.Classes.AllActions.Action;
 import edu.stanford.cs108.bunnyworld.Classes.AllTriggers.Trigger;
+import edu.stanford.cs108.bunnyworld.R;
 
 /**
  * Each shape has several attributes:
@@ -35,8 +46,9 @@ public class Shape {
     private String name;
     private Rect boundsRect;
     private String myText = "";
-    private String myImage = "";
-    private int fontSize = 20;
+    private String myImageText = "";
+    private BitmapDrawable myImage;
+    private int fontSize = 40;
     private boolean movable = true;
     private boolean hidden = false;
 
@@ -61,12 +73,33 @@ public class Shape {
         myText = text;
     }
 
-    public void setImage(String newImage) {
-        myImage = newImage;
+    public String getName() {
+        return name;
+    }
+
+    public void setImage(String newImageText, Context context) {
+        myImageText = newImageText;
+        if(myImageText != "") {
+            int id = context.getResources().getIdentifier(myImageText, "drawable", context.getPackageName());
+            if(id != 0) {
+                //we found the image, load it and return
+                myImage = (BitmapDrawable) context.getResources().getDrawable(id);
+                return;
+            }
+        }
+        //either empty string or non-valid resource name passed
+        //reset myImageText to "" to prevent attempts to draw image
+        System.out.println("Couldn't find resource");
+        myImage = null;
+        myImageText = "";
     }
 
     public void setBounds(Rect newBounds) {
         boundsRect = newBounds;
+    }
+
+    public void setFontSize(int newFontSize) {
+        fontSize = newFontSize;
     }
 
     /**
@@ -77,13 +110,20 @@ public class Shape {
      * @param canvas canvas to draw on
      */
     public void draw(Canvas canvas) {
+        //only draw myself if not hidden
         if(!hidden) {
             if (myText != "") {
-                //TODO
-                //draw as Text
-            } else if (myImage != "") {
-                //TODO
-                //draw as image
+                //draw text
+                Paint text_paint = new Paint();
+                text_paint.setColor(Color.BLACK);
+                text_paint.setTextSize(fontSize);
+                canvas.drawText(myText, boundsRect.left, boundsRect.top, text_paint);
+            } else if (myImageText != "") {
+                //draw image
+                Bitmap imageBitmap = myImage.getBitmap();
+                RectF floatBounds = new RectF(boundsRect);
+                canvas.drawBitmap(imageBitmap,null, floatBounds,null);
+
             } else {
                 //draw as light grey rectangle
                 Paint p = new Paint();
@@ -93,18 +133,68 @@ public class Shape {
         }
     }
 
+    /**
+     * Checks the trigger t for any actions
+     * attached to it and executes them
+     *
+     * @param t
+     */
     public void checkTrigger(Trigger t) {
         for(Script s : myScripts) {
             s.checkTrigger(t);
         }
     }
 
-    public void deleteScript(Script that) {
+    /**
+     * Will return all actions
+     * associated with Trigger t
+     * but will NOT execute them.
+     */
+    public List<Action> getActions(Trigger t) {
+        ArrayList<Action> r = new ArrayList<Action>();
         for(Script s : myScripts) {
-            if(s.equals(that)) {
-                myScripts.remove(s);
+            List<Action> temp;
+            if((temp = s.getActions(t)) != null) {
+                for(Action a : temp) {
+                    r.add(a);
+                }
             }
         }
+        return r;
+    }
+
+    /**
+     * This method deletes the script that
+     * from this shape's scripts
+     * @param that
+     */
+    public void deleteScript(Script that) {
+        Iterator<Script> iter = myScripts.iterator();
+        while(iter.hasNext()) {
+            Script s = iter.next();
+            if(s.equals(that)) {
+                iter.remove();
+            }
+        }
+    }
+
+    /**This method deletes all Scripts
+     * that would execute with
+     * Trigger t
+     *
+     * @param t Trigger
+     */
+    public void deleteTrigger(Trigger t) {
+        //if we ever move up API levels we could use this
+        //myScripts.removeIf(s -> !s.getTrigger().equals(t));
+        Iterator<Script> iter = myScripts.iterator();
+        while(iter.hasNext()) {
+            Script s = iter.next();
+            if(s.getTrigger().equals(t)) {
+                iter.remove();
+            }
+        }
+
     }
 
     /**
@@ -112,10 +202,15 @@ public class Shape {
      * to the list of scripts this shape
      * owns.  Useful for Editor
      *
-     * @param s script to add
+     * @param toAdd script to add
      */
-    public void addScript(Script s) {
-        myScripts.add(s);
+    public void addScript(Script toAdd) {
+        for(Script pre : myScripts) {
+            if(pre.equals(toAdd)) {
+                return;
+            }
+        }
+        myScripts.add(toAdd);
     }
 
 
