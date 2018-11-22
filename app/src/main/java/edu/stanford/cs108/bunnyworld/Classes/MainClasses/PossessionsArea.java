@@ -1,14 +1,16 @@
 package edu.stanford.cs108.bunnyworld.Classes.MainClasses;
 
+import android.view.View;
+
 import java.util.HashSet;
 
-public class PossessionsArea {
+public class PossessionsArea extends View {
 
     private HashSet<Shape> shapes;
     private int numShapes;
 
     public PossessionsArea() {
-        shapes = new HashSet<>();
+        super();
     }
 
     public void addShape(Shape shape) {
