@@ -4,98 +4,108 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Stack;
+
+import static java.security.AccessController.getContext;
 
 public class Game {
-    private Map<String, Page> pageStore;
-    private ArrayList<Page> deletedPages;
-    private ArrayList<Page> newlyAddedPages;
+    private HashSet<Page> pageStore;
+    private Stack<Game> previousGames;
+    private Stack<Game> subsequentGames;
+    private PossessionsArea possessionsArea;
     private String gameName;
     private String gameSound; //extension
-
-    //TODO Page naming ???
-    //TODO What else is there to do ???
-
 
     // - Create new Game
     public Game(String gameName) {
         this.gameName = gameName;
 
-        // - initialize a map of Pages
-        deletedPages = new ArrayList<Page>();
-        newlyAddedPages = new ArrayList<Page>();
-        pageStore = new HashMap<String, Page>();
+        previousGames = new Stack<Game>();
+        subsequentGames = new Stack<Game>();
+        pageStore = new HashSet<Page>();
+        possessionsArea = new PossessionsArea();
 
         // - Initialize a game with default page
-        Page defaultPage = new Page(); //TODO: what is used to initialize a page??
+        Page defaultPage = new Page();
 
         //add default page
-        pageStore.put(defaultPage.getPageName(), defaultPage);
-    }
-
-    // - Set new Default page
-    public void setNewDefaultPage(String newDefaultPage) {
-
+        pageStore.add(defaultPage);
     }
 
     // - Renaming
-    public void renameGame(String newName) {
+    public void setName(String newName) {
         this.gameName = newName;
+        subsequentGames.removeAllElements();
     }
 
     // - Resetting Game
     public void resetGame() {
-        pageStore = null;
+        removeAllPages();
         gameSound = null;
+        previousGames.removeAllElements();
+        subsequentGames.removeAllElements();
+    }
+
+    private void removeAllPages() {
+        for (Page page : pageStore) {
+            pageStore.remove(page);
+        }
     }
 
     // - Able to add new pages
-    public void addNewPage(Page newPage) {
-        pageStore.put(newPage.getPageName(), newPage);
-        newlyAddedPages.add(newPage);
-    }
-
-    // - Rename pages
-    public void updatePageList(Page page, String newName) {
-        String oldName = page.getPageName();
-        page.renamePage(newName);
-
-        if (pageStore.containsKey(oldName)) {
-            pageStore.remove(oldName);
-            pageStore.put(newName, page);
-        }
+    public void addPage(Page newPage) {
+        pageStore.add(newPage);
+        subsequentGames.removeAllElements();
     }
 
     // - Delete a page
     public void deletePage(Page page) {
-        if (pageStore.containsKey(page.getPageName())) {
-            deletedPages.add(page);
-            pageStore.remove(page.getPageName());
+        if (pageStore.contains(page)) {
+            pageStore.remove(page);
         }
+        subsequentGames.removeAllElements();
     }
 
     // Undo features
-    public void restoreRecentPage() {
-        if (deletedPages.size() > 0) {
-            Page recentlyDeletedPage = deletedPages.get(deletedPages.size() - 1);
-            pageStore.put(recentlyDeletedPage.getPageName(), recentlyDeletedPage);
-        } else {
-            //There is nothing to restore
+    public boolean redoGame() {
+        if (previousGames.size() != 0) {
+            subsequentGames.push(this);
+            Game prevGame = previousGames.pop();
+            setGame(prevGame);
+            this.previousGames = prevGame.previousGames;
+            return true;
         }
+        return false;
     }
 
     // Undo features
-    public void undoRecentPageAddition() {
-        if (newlyAddedPages.size() > 0) {
-            Page recentlyAddedPage = newlyAddedPages.get(newlyAddedPages.size() - 1);
-            pageStore.remove(recentlyAddedPage.getPageName());
-        } else {
-            //There is no page to undo
+    public boolean undoGame() {
+        if (subsequentGames.size() != 0) {
+            previousGames.push(this);
+            Game subsGame = subsequentGames.pop();
+            setGame(subsGame);
+            this.subsequentGames = subsGame.subsequentGames;
+            return true;
         }
+        return false;
     }
 
-    // - Perform error checking
-    private void sanityCheck() {
-
+    // Undo features
+    public void setGameSound(String gameSound) {
+        this.gameSound = gameSound;
+        subsequentGames.removeAllElements();
     }
+
+    private void setGame(Game newGame) {
+        this.gameName = newGame.gameName;
+        this.gameSound = newGame.gameSound;
+        this.pageStore = newGame.pageStore;
+    }
+
+
+    //TODO
+    // have an inner possessions area class
+    // have an inner database class: save (error checking) and load
 }
